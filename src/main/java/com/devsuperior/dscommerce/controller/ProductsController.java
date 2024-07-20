@@ -28,4 +28,9 @@ public class ProductsController {
     public Page<ProductDTO> findAll(Pageable pageable) {
         return productService.findAll(pageable);
     }
+
+    @PostMapping
+    public ProductDTO insert(@RequestBody ProductDTO productDTO) {
+        return productService.insert(productDTO);
+    }
 }

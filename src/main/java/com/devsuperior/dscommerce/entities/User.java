@@ -172,4 +172,13 @@ public class User  implements UserDetails {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+    public Boolean hasHole(String roleName) {
+        for (Role role : roles) {
+            if (role.getAuthority().equals(roleName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

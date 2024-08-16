@@ -1,5 +1,6 @@
 package com.devsuperior.dscommerce.repositories;
 
+import com.devsuperior.dscommerce.entities.Product;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,5 +24,14 @@ public class ProductRepositoryTests {
         repository.deleteById(existingId);
 
         Assertions.assertTrue(repository.findById(existingId).isEmpty());
+    }
+
+    @Test
+    public void saveShouldPersistWithAutoincrementWhenIdIsNull() {
+        Product product = new Product(null, "Phone", "Good phone", 800.0, "https://img.com/img.png");
+        Product savedProduct = repository.save(product);
+
+        Assertions.assertNotNull(savedProduct.getId());
+        Assertions.assertEquals(product.getId(), savedProduct.getId());
     }
 }

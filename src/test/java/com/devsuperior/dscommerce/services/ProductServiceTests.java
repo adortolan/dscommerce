@@ -1,4 +1,5 @@
 package com.devsuperior.dscommerce.services;
+import com.devsuperior.dscommerce.dto.ProductMinDTO;
 import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.repositories.ProductRepository;
 import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -46,7 +48,7 @@ public class ProductServiceTests {
         Mockito.when(repository.existsById(dependentId)).thenReturn(true);
 
         page = new PageImpl<>(List.of(new Product(1L, "Phone", "Good phone", 800.0, "https://img.com/img.png")));
-        Mockito.when(repository.findAll((Pageable) ArgumentMatchers.any())).thenReturn(page);
+        Mockito.when(repository.searchByName(ArgumentMatchers.anyString(),ArgumentMatchers.any())).thenReturn(page);
         Mockito.when(repository.save(ArgumentMatchers.any())).thenReturn(page.iterator().next());
         product = new Product(1L, "Phone", "Good phone", 800.0, "https://img.com/img.png");
         Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
@@ -67,5 +69,13 @@ public class ProductServiceTests {
     @Test
     public void deleteShouldBeExceptionWhenDependentId() {
         Assertions.assertThrows(DataBaseException.class, () -> service.delete(dependentId));
+    }
+
+    @Test
+    public void findAllPagedShouldReturnPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ProductMinDTO> result = service.findAll("",pageable);
+        Assertions.assertNotNull(result);
+        Assertions.assertFalse(result.isEmpty());
     }
 }

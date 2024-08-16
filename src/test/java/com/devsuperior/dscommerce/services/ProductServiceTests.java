@@ -1,6 +1,7 @@
 package com.devsuperior.dscommerce.services;
 import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.repositories.ProductRepository;
+import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ public class ProductServiceTests {
 
     private Long existingId;
     private Long nonExistingId;
+    private Long dependentId;
 
     @BeforeEach
     private void setUp() throws Exception {
@@ -31,6 +33,10 @@ public class ProductServiceTests {
 
         Mockito.when(repository.existsById(existingId)).thenReturn(true);
         Mockito.when(repository.existsById(nonExistingId)).thenReturn(false);
+
+        dependentId = 3L;
+        Mockito.doThrow(DataBaseException.class).when(repository).deleteById(dependentId);
+        Mockito.when(repository.existsById(dependentId)).thenReturn(true);
     }
 
     @Test
@@ -41,5 +47,10 @@ public class ProductServiceTests {
     @Test
     public void deleteShouldBeExceptionWhenIdDoesNotExists() {
         Assertions.assertThrows(ResourceNotFoundException.class, () -> service.delete(nonExistingId));
+    }
+
+    @Test
+    public void deleteShouldBeExceptionWhenDependentId() {
+        Assertions.assertThrows(DataBaseException.class, () -> service.delete(dependentId));
     }
 }

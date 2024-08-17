@@ -1,8 +1,10 @@
 package com.devsuperior.dscommerce.controller;
 
+import com.devsuperior.dscommerce.dto.ProductDTO;
 import com.devsuperior.dscommerce.dto.ProductMinDTO;
 import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.services.ProductService;
+import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import org.assertj.core.internal.Classes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,13 +37,21 @@ public class ProductControllerTests {
     private ProductService productService;
 
     private PageImpl<ProductMinDTO> page;
+    private Long existingId;
+    private Long nonExistingId;
 
     @BeforeEach
     private void setUp() throws Exception {
+        existingId = 1L;
+        nonExistingId = 1000L;
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
         page = new PageImpl<>(List.of(new ProductMinDTO (1L, "Phone",  800.0, "https://img.com/img.png")));
         Mockito.when(productService.findAll(ArgumentMatchers.anyString(),ArgumentMatchers.any())).thenReturn(page);
+
+        Mockito.when(productService.findById(existingId)).thenReturn(new ProductDTO(1L, "Phone", "Good phone",
+                800.0, "https://img.com/img.png"));
+        Mockito.when(productService.findById(nonExistingId)).thenThrow(new ResourceNotFoundException("Recurso não encontrado"));
     }
 
     @Test
@@ -50,5 +60,21 @@ public class ProductControllerTests {
                         .contentType("application/json")
                         .with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    public void findByIdShouldReturnProductDTO() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/products/{id}", existingId)
+                        .contentType("application/json")
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    public void findByIdShouldReturnResourceNotFoundException() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/products/{id}", nonExistingId)
+                        .contentType("application/json")
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 }

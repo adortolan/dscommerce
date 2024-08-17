@@ -5,6 +5,7 @@ import com.devsuperior.dscommerce.dto.ProductMinDTO;
 import com.devsuperior.dscommerce.entities.Product;
 import com.devsuperior.dscommerce.repositories.ProductRepository;
 import com.devsuperior.dscommerce.services.ProductService;
+import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,11 +44,14 @@ public class ProductControllerTests {
     private PageImpl<ProductMinDTO> page;
     private Long existingId;
     private Long nonExistingId;
+    private Long dependentId;
 
     @BeforeEach
     private void setUp() throws Exception {
         existingId = 1L;
         nonExistingId = 1000L;
+        dependentId = 3L;
+
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
         page = new PageImpl<>(List.of(new ProductMinDTO (1L, "Phone",  800.0, "https://img.com/img.png")));
@@ -62,6 +66,10 @@ public class ProductControllerTests {
         Mockito.when(productService.update(ArgumentMatchers.eq(existingId), ArgumentMatchers.any())).thenReturn(
                 new ProductDTO(1L, "Phone", "Good phone", 800.0, "https://img.com/img.png"));
         Mockito.when(productService.update(ArgumentMatchers.eq(nonExistingId), ArgumentMatchers.any())).thenThrow(new ResourceNotFoundException("Recurso não encontrado"));
+
+        Mockito.doNothing().when(productService).delete(existingId);
+        Mockito.doThrow(ResourceNotFoundException.class).when(productService).delete(nonExistingId);
+        Mockito.doThrow(DataBaseException.class).when(productService).delete(dependentId);
     }
 
     @Test
@@ -106,6 +114,27 @@ public class ProductControllerTests {
         String json = objectMapper.writeValueAsString(dto);
         mockMvc.perform(MockMvcRequestBuilders.put("/products/{id}", nonExistingId)
                         .content(json)
+                        .contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Test
+    public void deleteShouldBeExceptionWhenDependentId() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/products/{id}", dependentId)
+                        .contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void deleteShouldDoNothingWhenIdExists() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/products/{id}", existingId)
+                        .contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    public void deleteShouldBeExceptionWhenIdDoesNotExists() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/products/{id}", nonExistingId)
                         .contentType("application/json"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }

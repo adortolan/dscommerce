@@ -62,6 +62,11 @@ public class ProductService {
 
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto) {
+
+        if(!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+
         Product product = productRepository.getReferenceById(id);
         copyDtoToEntity(dto, product);
         product = productRepository.save(product);

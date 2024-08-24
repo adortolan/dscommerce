@@ -1,5 +1,7 @@
 package com.devsuperior.dscommerce.dto;
 
+import com.devsuperior.dscommerce.controller.exceptions.FieldMessage;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,10 @@
 package com.devsuperior.dscommerce.controller.handlers;
 
+import com.devsuperior.dscommerce.controller.exceptions.StandardError;
 import com.devsuperior.dscommerce.dto.CustomError;
 import com.devsuperior.dscommerce.dto.ValidationError;
 import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
+import com.devsuperior.dscommerce.services.exceptions.EmailException;
 import com.devsuperior.dscommerce.services.exceptions.ForbiddenException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,14 +27,14 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(DataBaseException.class)
-    public ResponseEntity<CustomError> database(DataBaseException e, HttpServletRequest request) {
+    public ResponseEntity<ValidationError> database(DataBaseException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), request.getRequestURI());
+        ValidationError err = new ValidationError(Instant.now(), status.value(), e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(status).body(err);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<CustomError> methodArgumentNotValidation(MethodArgumentNotValidException e, HttpServletRequest request) {
+    public ResponseEntity<ValidationError> methodArgumentNotValidation(MethodArgumentNotValidException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
         ValidationError err = new ValidationError(Instant.now(), status.value(), "Dados inválidos", request.getRequestURI());
         for (FieldError f: e.getBindingResult().getFieldErrors()) {
@@ -45,6 +47,21 @@ public class ControllerExceptionHandler {
     public ResponseEntity<CustomError> forbidden(ForbiddenException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.FORBIDDEN;
         CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(EmailException.class)
+    public ResponseEntity<StandardError> email(EmailException e, HttpServletRequest request) {
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandardError err = new StandardError();
+
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Email error");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+
         return ResponseEntity.status(status).body(err);
     }
 }

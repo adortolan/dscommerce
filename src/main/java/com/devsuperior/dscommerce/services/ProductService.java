@@ -5,6 +5,7 @@ import com.devsuperior.dscommerce.dto.ProductDTO;
 import com.devsuperior.dscommerce.dto.ProductMinDTO;
 import com.devsuperior.dscommerce.entities.Category;
 import com.devsuperior.dscommerce.entities.Product;
+import com.devsuperior.dscommerce.projections.ProdutctProjection;
 import com.devsuperior.dscommerce.repositories.ProductRepository;
 import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -85,5 +87,14 @@ public class ProductService {
             category.setId(catDto.getId());
             product.getCategories().add(category);
         }
+    }
+
+    public Page<ProdutctProjection> findAllPaged(String categoryId, String name, Pageable pageable) {
+        List<Long> categoryIds = Arrays.asList();
+        if(!"0".equals(categoryId)) {
+            categoryIds = Arrays.asList(categoryId.split(",")).stream().map(Long::parseLong).toList();
+        }
+
+        return productRepository.searchProducts(categoryIds, name.trim(), pageable);
     }
 }

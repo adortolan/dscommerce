@@ -9,6 +9,7 @@ import com.devsuperior.dscommerce.projections.ProdutctProjection;
 import com.devsuperior.dscommerce.repositories.ProductRepository;
 import com.devsuperior.dscommerce.services.exceptions.DataBaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
+import com.devsuperior.dscommerce.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -99,6 +100,9 @@ public class ProductService {
         Page<ProdutctProjection> page = productRepository.searchProducts(categoryIds, name.trim(), pageable);
         List<Long> productsIds = page.map(p -> p.getId()).toList();
         List<Product> products = productRepository.searchProductsWithCategories(productsIds);
+
+        products = Utils.replace(page.getContent(), products);
+
         List<ProductDTO> dtos = products.stream().map(ProductDTO::new).toList();
         return new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());
     }

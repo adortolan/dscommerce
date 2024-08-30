@@ -12,6 +12,7 @@ import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -89,12 +90,16 @@ public class ProductService {
         }
     }
 
-    public Page<ProdutctProjection> findAllPaged(String categoryId, String name, Pageable pageable) {
+    public Page<ProductDTO> findAllPaged(String categoryId, String name, Pageable pageable) {
         List<Long> categoryIds = Arrays.asList();
         if(!"0".equals(categoryId)) {
             categoryIds = Arrays.asList(categoryId.split(",")).stream().map(Long::parseLong).toList();
         }
 
-        return productRepository.searchProducts(categoryIds, name.trim(), pageable);
+        Page<ProdutctProjection> page = productRepository.searchProducts(categoryIds, name.trim(), pageable);
+        List<Long> productsIds = page.map(p -> p.getId()).toList();
+        List<Product> products = productRepository.searchProductsWithCategories(productsIds);
+        List<ProductDTO> dtos = products.stream().map(ProductDTO::new).toList();
+        return new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());
     }
 }

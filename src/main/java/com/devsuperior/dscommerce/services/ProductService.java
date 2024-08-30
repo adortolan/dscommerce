@@ -101,7 +101,7 @@ public class ProductService {
         List<Long> productsIds = page.map(p -> p.getId()).toList();
         List<Product> products = productRepository.searchProductsWithCategories(productsIds);
 
-        products = Utils.replace(page.getContent(), products);
+        products = (List<Product>) Utils.replace(page.getContent(), products);
 
         List<ProductDTO> dtos = products.stream().map(ProductDTO::new).toList();
         return new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());

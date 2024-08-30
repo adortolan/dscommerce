@@ -1,6 +1,7 @@
 package com.devsuperior.dscommerce.util;
 
 import com.devsuperior.dscommerce.entities.Product;
+import com.devsuperior.dscommerce.projections.IdProjection;
 import com.devsuperior.dscommerce.projections.ProdutctProjection;
 
 import java.util.ArrayList;
@@ -9,15 +10,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Utils {
-    public static List<Product> replace(List<ProdutctProjection> ordered, List<Product> unordered) {
-        Map<Long, Product> map = new HashMap<>();
-        for (Product product : unordered) {
+    public static <ID> List<? extends IdProjection<ID>>
+        replace(List<? extends IdProjection<ID>> ordered,List<? extends IdProjection<ID>> unordered) {
+        Map<ID, IdProjection<ID>> map = new HashMap<>();
+        for (IdProjection<ID> product : unordered) {
             map.put(product.getId(), product);
         }
 
-        List<Product> result = new ArrayList<>();
+        List<IdProjection<ID>> result = new ArrayList<>();
 
-        for (ProdutctProjection projection : ordered) {
+        for (IdProjection<ID> projection : ordered) {
             result.add(map.get(projection.getId()));
         }
         return result;

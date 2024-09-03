@@ -6,6 +6,7 @@ import com.devsuperior.dscommerce.dto.RoleDTO;
 import com.devsuperior.dscommerce.dto.UserDTO;
 import com.devsuperior.dscommerce.dto.UserInsertDTO;
 import com.devsuperior.dscommerce.dto.UserUpdateDTO;
+import com.devsuperior.dscommerce.repositories.RoleRepository;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService implements UserDetailsService {
 	@Autowired
 	private UserRepository repository;
+
+	@Autowired
+	private RoleRepository roleRepository;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -89,6 +93,10 @@ public class UserService implements UserDetailsService {
 		User user = new User();
 		user.setPassword(new BCryptPasswordEncoder().encode(dto.getPassword()));
 		copyDtoToEntity(dto, user);
+
+		user.getRoles().clear();
+		Role role = roleRepository.findByAuthority("ROLE_CLIENT");
+		user.getRoles().add(role);
 		user = repository.save(user);
 		return new UserDTO(user);
 	}

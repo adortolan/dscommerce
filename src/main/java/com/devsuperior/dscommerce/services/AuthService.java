@@ -15,4 +15,7 @@ public class AuthService {
             throw new ForbiddenException("Acesso negado");
         }
     }
+
+    public void createRecoverToken(String email) {
+    }
 }

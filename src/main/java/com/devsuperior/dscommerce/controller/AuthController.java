@@ -23,7 +23,7 @@ public class AuthController {
     @PostMapping(value = "/recover-token")
     public ResponseEntity<Void> createRecoverToken(@RequestBody @Valid EmailBodyDTO body) {
 
-        authService.createRecoverToken(body.getEmail());
+        authService.createRecoverToken(body);
         return ResponseEntity.noContent().build();
 
     }

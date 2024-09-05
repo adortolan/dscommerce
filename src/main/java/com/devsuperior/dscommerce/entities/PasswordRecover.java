@@ -16,7 +16,7 @@ public class PasswordRecover {
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
-    private Instant experation;
+    private Instant expiration;
 
     public Long getId() {
         return id;
@@ -42,12 +42,12 @@ public class PasswordRecover {
         this.email = email;
     }
 
-    public Instant getExperation() {
-        return experation;
+    public Instant getExpiration() {
+        return expiration;
     }
 
-    public void setExperation(Instant experation) {
-        this.experation = experation;
+    public void setExpiration(Instant experation) {
+        this.expiration = experation;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.devsuperior.dscommerce.services;
 
 import com.devsuperior.dscommerce.dto.EmailBodyDTO;
+import com.devsuperior.dscommerce.dto.NewPasswordDTO;
 import com.devsuperior.dscommerce.entities.PasswordRecover;
 import com.devsuperior.dscommerce.entities.User;
 import com.devsuperior.dscommerce.repositories.PasswordRecoverRepository;
@@ -9,10 +10,12 @@ import com.devsuperior.dscommerce.services.exceptions.ForbiddenException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,6 +39,9 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public void vaidateSelfOrAdmin(Long userId) {
         User user = userService.authenticated();
         if (!user.hasHole("ROLE_ADMIN") && !user.getId().equals(userId)) {
@@ -52,7 +58,7 @@ public class AuthService {
         }
 
         PasswordRecover recover = new PasswordRecover();
-        recover.setExperation(Instant.now().plusSeconds(tokenMinutes * 60L));
+        recover.setExpiration(Instant.now().plusSeconds(tokenMinutes * 60L));
         recover.setEmail(body.getEmail());
 
         String token = UUID.randomUUID().toString();
@@ -64,5 +70,18 @@ public class AuthService {
                 recoverUri + token;
 
         emailService.sendEmail(body.getEmail(), "Recuperação de senha", text);
+    }
+
+    @Transactional
+    public void saveNewPassword(NewPasswordDTO body) {
+        List<PasswordRecover> result = recoverRepository.searchValidTokens(body.getToken(), Instant.now());
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException("Token inválido");
+        }
+        PasswordRecover recover = result.get(0);
+        User user = userRepository.findByEmail(recover.getEmail());
+        user.setPassword(passwordEncoder.encode(body.getPassword()));
+        userRepository.save(user);
+        recoverRepository.delete(recover);
     }
 }

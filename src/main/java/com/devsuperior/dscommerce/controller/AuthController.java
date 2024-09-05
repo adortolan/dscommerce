@@ -28,4 +28,12 @@ public class AuthController {
 
     }
 
+    @PutMapping(value = "/new-password")
+    public ResponseEntity<Void> saveNewPassword(@RequestBody @Valid NewPasswordDTO body) {
+
+        authService.saveNewPassword(body);
+        return ResponseEntity.noContent().build();
+
+    }
+
 }

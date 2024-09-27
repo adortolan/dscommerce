@@ -8,6 +8,7 @@ import com.devsuperior.dscommerce.dto.UserInsertDTO;
 import com.devsuperior.dscommerce.dto.UserUpdateDTO;
 import com.devsuperior.dscommerce.repositories.RoleRepository;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
+import com.devsuperior.dscommerce.util.CustomUserUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,9 @@ public class UserService implements UserDetailsService {
 	@Autowired
 	private RoleRepository roleRepository;
 
+	@Autowired
+	private CustomUserUtil customUserUtil;
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		
@@ -54,10 +58,7 @@ public class UserService implements UserDetailsService {
 
 	protected User authenticated(){
 		try {
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			Jwt jwtPrincipal = (Jwt) authentication.getPrincipal();
-			String username = jwtPrincipal.getClaim("username");
-
+			String username = customUserUtil.getLoggedUserName();
 			return repository.findByEmail(username);
 		} catch (Exception e) {
 			throw new UsernameNotFoundException("Email not found");

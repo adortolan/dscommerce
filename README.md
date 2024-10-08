@@ -535,3 +535,127 @@ security.oauth2.client.client-secret=${CLIENT_SECRET:dscatalog123}
 jwt.secret=${JWT_SECRET:MY-JWT-SECRET}
 jwt.duration=${JWT_DURATION:86400}
 ```
+# Documentação de API com Swagger e OpenAPI 3.0 no Spring Boot com Java
+>  *Criar uma documentação para o projeto Dsmovie usando Swagger e OpenAPI 3.0*
+
+### Passo 1: Dependência maven
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.1.0</version>
+</dependency>
+```
+Referência: https://springdoc.org/
+
+### Passo 2: Classe de configuração
+
+- Incluir a classe OpenAPIConfig no pacote config:
+
+```java
+@OpenAPIDefinition
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI dsmovieAPI() {
+        return new OpenAPI()
+           .info(new Info()
+           .title("DSCommerce API")
+           .description("DSCommerce Reference Project")
+           .version("v0.0.1")
+           .license(new License()
+           .name("Apache 2.0")
+           .url("")));
+    }
+}
+```
+### Passo 3: Acessar documentação
+
+- Link: http://localhost:8080/swagger-ui.html
+
+## Tópicos avançados - Recursos no Swagger
+
+### Passo 1: Personalizar o swagger
+
+- Anotações nos recursos (controllers)
+
+```java
+@Tag(name = "Category", description = "Controller for Category")
+public class CategoryController {
+```
+
+- Anotações nos endpoints REST
+
+```java
+@Operation(
+    description = "Create a new category",
+    summary = "Create a new category",
+    responses = {
+         @ApiResponse(description = "Created", responseCode = "201"),
+         @ApiResponse(description = "Bad Request", responseCode = "400"),
+         @ApiResponse(description = "Unauthorized", responseCode = "401"),
+         @ApiResponse(description = "Forbidden", responseCode = "403"),
+         @ApiResponse(description = "Unprocessable Entity", responseCode = "422")
+    }
+)
+@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PostMapping
+public ResponseEntity<ProductDTO> insert(@RequestBody ProductDTO dto) {
+```
+```java
+@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+public ProductDTO findById(@PathVariable Long id) {
+```
+
+- Anotações model
+
+```java
+public class CategoryDTO {
+
+	@Schema(description = "Database generated category ID")
+	private Long id;
+	
+	@Schema(description = "Category title")
+	private String title;
+```
+## Tópicos avançados:
+
+### Configurações com Spring Security
+
+- Incluir anotação @SecurityScheme na classe de configuração
+
+```java
+@OpenAPIDefinition
+@Configuration
+@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer")
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI dscommerceAPI() {
+        return new OpenAPI()
+           .info(new Info()
+           .title("DSCommerce API")
+           .description("DSCommerce Reference Project")
+           .version("v0.0.1")
+           .license(new License()
+           .name("Apache 2.0")
+           .url("")));
+    }
+}
+```
+- Inclcuir anotação @SecurityRequirement nos endpoints protegidos
+```java
+@SecurityRequirement(name = "bearerAuth")
+@DeleteMapping(value = "/{id}")
+public ResponseEntity<CategoryDTO> delete(@PathVariable Long id) {
+```
+### Gerar especificação OpenAPI da API
+
+- Specify the path of the OpenAPI documentation
+```xml
+springdoc.api-docs.path=/api-docs
+```
+- Acessar especificação: http://localhost:8080/api-docs
+  
